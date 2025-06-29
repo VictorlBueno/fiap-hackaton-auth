@@ -1,98 +1,294 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Cognito Auth API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API robusta para autenticação usando AWS Cognito com **Clean Architecture** e **Arquitetura Hexagonal**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🏗️ Arquitetura
 
-## Description
+Este projeto segue rigorosamente os princípios da **Clean Architecture** e **Arquitetura Hexagonal**, organizando o código em camadas bem definidas:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+```
+src/
+├── domain/                 # Camada de Domínio (Regras de Negócio)
+│   ├── entities/          # Entidades de negócio
+│   └── ports/             # Contratos/Interfaces
+│       └── gateways/      # Interfaces para recursos externos
+├── application/           # Camada de Aplicação (Casos de Uso)
+│   ├── ports/            # Interfaces dos controllers
+│   └── usecases/         # Implementação dos casos de uso
+└── infrastructure/       # Camada de Infraestrutura (Detalhes)
+    ├── adapters/         # Implementações dos contratos
+    │   ├── controllers/  # Controllers REST
+    │   └── gateways/     # Integrações externas (Cognito)
+    ├── config/           # Configurações
+    ├── http/            # Ponto de entrada HTTP
+    └── modules/         # Módulos do NestJS
 ```
 
-## Compile and run the project
+### 🎯 Princípios Aplicados
 
+- **Dependency Inversion**: Dependências apontam para abstrações, não implementações
+- **Single Responsibility**: Cada classe tem uma única responsabilidade
+- **Open/Closed**: Extensível para novos recursos sem modificar código existente
+- **Interface Segregation**: Interfaces específicas para cada necessidade
+- **Separation of Concerns**: Separação clara entre domínio, aplicação e infraestrutura
+
+## 🚀 Funcionalidades
+
+### ✅ Criação de Usuário
+- Criação direta com senha definitiva
+- Email marcado como verificado automaticamente
+- Uso de métodos admin do Cognito (`adminCreateUser`, `adminSetUserPassword`)
+- Validação robusta de entrada
+
+### ✅ Login de Usuário
+- Autenticação via usuário/senha
+- Retorno de tokens JWT (access, refresh, id)
+- Tratamento completo de erros
+- Rate limiting automático do Cognito
+
+## 🛠️ Tecnologias
+
+- **NestJS** - Framework Node.js com TypeScript
+- **AWS Cognito** - Serviço de autenticação da AWS
+- **AWS SDK v3** - Cliente oficial da AWS
+- **Swagger/OpenAPI** - Documentação automática da API
+- **Class Validator** - Validação de DTOs
+- **TypeScript** - Tipagem estática
+
+## 📋 Pré-requisitos
+
+- Node.js 18+
+- Conta AWS com Cognito configurado
+- User Pool e App Client criados no Cognito
+
+## ⚙️ Configuração
+
+### 1. Instalação
 ```bash
-# development
-$ npm run start
+# Clone o repositório
+git clone <repo-url>
+cd cognito-auth-api
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Instale as dependências
+make install
+# ou
+npm install
 ```
 
-## Run tests
-
+### 2. Configuração do Ambiente
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Copie o arquivo de exemplo
+cp .env.example .env
 ```
 
-## Deployment
+Configure as variáveis no arquivo `.env`:
+```env
+# Server
+PORT=3000
+NODE_ENV=development
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+# AWS Cognito
+AWS_REGION=us-east-1
+COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
+COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
+COGNITO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxx
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# AWS Credentials (se necessário)
+AWS_ACCESS_KEY_ID=AKIAXXXXXXXXXXXXXXXX
+AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 3. Configuração do Cognito
 
-## Resources
+No AWS Console, configure seu User Pool com:
 
-Check out a few resources that may come in handy when working with NestJS:
+1. **App Client Settings**:
+    - ✅ Enable SRP (Secure Remote Password) protocol based authentication
+    - ✅ Enable username-password auth for admin APIs
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+2. **Policies**:
+    - Password minimum length: 8 characters
+    - Require uppercase, lowercase, numbers, special characters
 
-## Support
+3. **MFA**: Desabilitado (conforme requisitos)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 🚦 Executando
 
-## Stay in touch
+### Desenvolvimento
+```bash
+make dev
+# ou
+npm run start:dev
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Produção
+```bash
+make build
+make start
+# ou
+npm run build
+npm run start:prod
+```
 
-## License
+### Docker
+```bash
+make docker-build
+make docker-run
+# ou
+docker build -t cognito-auth-api .
+docker run -p 3000:3000 --env-file .env cognito-auth-api
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 📚 Documentação da API
+
+Após iniciar o servidor, acesse:
+
+- **Swagger UI**: http://localhost:3000/api/docs
+- **OpenAPI JSON**: http://localhost:3000/api/docs-json
+
+## 🧪 Endpoints
+
+### POST /api/v1/auth/register
+Cria um novo usuário.
+
+```json
+{
+  "email": "user@example.com",
+  "password": "MinhaSenh@123",
+  "name": "João Silva"
+}
+```
+
+**Resposta (201)**:
+```json
+{
+  "id": "uuid-4",
+  "email": "user@example.com",
+  "name": "João Silva",
+  "createdAt": "2024-01-01T00:00:00Z",
+  "isEmailVerified": true
+}
+```
+
+### POST /api/v1/auth/login
+Autentica um usuário.
+
+```json
+{
+  "email": "user@example.com",
+  "password": "MinhaSenh@123"
+}
+```
+
+**Resposta (200)**:
+```json
+{
+  "accessToken": "eyJhbGciOiJSUzI1NiIs...",
+  "refreshToken": "eyJjdHkiOiJKV1Qi...",
+  "idToken": "eyJhbGciOiJSUzI1NiIs...",
+  "expiresIn": 3600,
+  "tokenType": "Bearer"
+}
+```
+
+## 🔧 Comandos Úteis
+
+```bash
+# Configuração inicial
+make setup
+
+# Desenvolvimento
+make dev
+
+# Testes
+make test
+make test-coverage
+
+# Linting
+make lint
+make lint-fix
+
+# Build
+make build
+
+# Verificações (lint + test)
+make check
+
+# Limpeza
+make clean
+```
+
+## 🚨 Tratamento de Erros
+
+A API trata todos os cenários de erro com respostas estruturadas:
+
+| Status | Cenário |
+|--------|---------|
+| 400 | Dados inválidos, senha fraca |
+| 401 | Credenciais inválidas |
+| 409 | Usuário já existe |
+| 429 | Muitas tentativas |
+| 500 | Erro interno |
+
+**Formato de erro**:
+```json
+{
+  "statusCode": 400,
+  "message": "Email deve ter formato válido",
+  "timestamp": "2024-01-01T00:00:00Z",
+  "path": "/api/v1/auth/register"
+}
+```
+
+## 🏭 Estrutura de Produção
+
+### Healthcheck
+```bash
+curl http://localhost:3000/api/v1/health
+```
+
+### Logging
+- Logs estruturados para produção
+- Correlation IDs para rastreamento
+- Métricas de performance
+
+### Segurança
+- Validação rigorosa de entrada
+- Rate limiting do Cognito
+- Headers de segurança configurados
+- CORS configurado
+
+## 🧪 Testes
+
+```bash
+# Testes unitários
+npm run test
+
+# Testes com watch
+npm run test:watch
+
+# Coverage
+npm run test:cov
+
+# Testes e2e
+npm run test:e2e
+```
+
+## 📈 Monitoramento
+
+- **Swagger UI** para documentação interativa
+- **Health checks** para monitoramento de saúde
+- **Logs estruturados** para observabilidade
+- **Métricas** de performance integradas
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
