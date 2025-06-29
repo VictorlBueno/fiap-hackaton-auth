@@ -1,122 +1,30 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   HttpException,
   HttpStatus,
   Post,
+  UseInterceptors,
 } from '@nestjs/common';
-import {
-  ApiBody,
-  ApiOperation,
-  ApiProperty,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { CreateUserUseCase } from '../../../application/usecases/create-user.usecase';
 import { LoginUserUseCase } from '../../../application/usecases/login-user.usecase';
 import { User } from '../../../domain/entities/user.entity';
 import { AuthResult } from '../../../domain/entities/auth-result.entity';
 import {
-  AuthControllerPort,
-  CreateUserRequest,
-  LoginRequest,
-} from '../../../domain/ports/controllers/auth.port';
-
-class CreateUserDto implements CreateUserRequest {
-  @ApiProperty({ example: 'user@example.com', description: 'Email do usuário' })
-  @IsEmail({}, { message: 'Email deve ter formato válido' })
-  email: string;
-
-  @ApiProperty({
-    example: 'MinhaSenh@123',
-    description: 'Senha (mínimo 8 caracteres)',
-  })
-  @IsString({ message: 'Senha deve ser uma string' })
-  @MinLength(8, { message: 'Senha deve ter pelo menos 8 caracteres' })
-  password: string;
-
-  @ApiProperty({
-    example: 'João Silva',
-    description: 'Nome completo do usuário',
-  })
-  @IsString({ message: 'Nome deve ser uma string' })
-  @IsNotEmpty({ message: 'Nome é obrigatório' })
-  @MinLength(2, { message: 'Nome deve ter pelo menos 2 caracteres' })
-  name: string;
-}
-
-class LoginDto implements LoginRequest {
-  @ApiProperty({ example: 'user@example.com', description: 'Email do usuário' })
-  @IsEmail({}, { message: 'Email deve ter formato válido' })
-  email: string;
-
-  @ApiProperty({ example: 'MinhaSenh@123', description: 'Senha do usuário' })
-  @IsString({ message: 'Senha deve ser uma string' })
-  @IsNotEmpty({ message: 'Senha é obrigatória' })
-  password: string;
-}
-
-class UserResponseDto {
-  @ApiProperty({ example: 'uuid-4', description: 'ID único do usuário' })
-  id: string;
-
-  @ApiProperty({ example: 'user@example.com', description: 'Email do usuário' })
-  email: string;
-
-  @ApiProperty({ example: 'João Silva', description: 'Nome do usuário' })
-  name: string;
-
-  @ApiProperty({
-    example: '2024-01-01T00:00:00Z',
-    description: 'Data de criação',
-  })
-  createdAt: Date;
-
-  @ApiProperty({ example: true, description: 'Email verificado' })
-  isEmailVerified: boolean;
-}
-
-class AuthResponseDto {
-  @ApiProperty({ description: 'Token de acesso JWT' })
-  accessToken: string;
-
-  @ApiProperty({ description: 'Token de refresh' })
-  refreshToken: string;
-
-  @ApiProperty({ description: 'Token de identidade' })
-  idToken: string;
-
-  @ApiProperty({ example: 3600, description: 'Tempo de expiração em segundos' })
-  expiresIn: number;
-
-  @ApiProperty({ example: 'Bearer', description: 'Tipo do token' })
-  tokenType: string;
-}
-
-class ErrorResponseDto {
-  @ApiProperty({ example: 400, description: 'Código de status HTTP' })
-  statusCode: number;
-
-  @ApiProperty({ example: 'Bad Request', description: 'Mensagem de erro' })
-  message: string;
-
-  @ApiProperty({
-    example: '2024-01-01T00:00:00Z',
-    description: 'Timestamp do erro',
-  })
-  timestamp: string;
-
-  @ApiProperty({
-    example: '/auth/register',
-    description: 'Caminho da requisição',
-  })
-  path: string;
-}
+  AuthResponseDto,
+  CreateUserDto,
+  ErrorResponseDto,
+  LoginDto,
+  UserResponseDto,
+} from './dtos';
+import { AuthControllerPort } from '../../../domain/ports/controllers/auth.port';
 
 @ApiTags('Autenticação')
 @Controller('auth')
+@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController implements AuthControllerPort {
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,
@@ -137,7 +45,12 @@ export class AuthController implements AuthControllerPort {
   })
   @ApiResponse({
     status: 400,
-    description: 'Dados inválidos ou usuário já existe',
+    description: 'Dados inválidos',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Usuário já existe',
     type: ErrorResponseDto,
   })
   @ApiResponse({
