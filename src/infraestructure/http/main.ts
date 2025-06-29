@@ -20,7 +20,7 @@ async function bootstrap() {
 
   // CORS configuration
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || ['http://localhost:3000'],
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
@@ -62,7 +62,7 @@ async function bootstrap() {
     customSiteTitle: 'Cognito Auth API Docs',
   });
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT!;
   await app.listen(port);
 
   console.log(`🚀 Aplicação rodando em: http://localhost:${port}`);

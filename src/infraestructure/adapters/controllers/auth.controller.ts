@@ -1,7 +1,7 @@
 import {
   Body,
   ClassSerializerInterceptor,
-  Controller,
+  Controller, HttpCode,
   HttpException,
   HttpStatus,
   Post,
@@ -92,6 +92,7 @@ export class AuthController implements AuthControllerPort {
     description: 'Erro interno do servidor',
     type: ErrorResponseDto,
   })
+  @HttpCode(HttpStatus.OK)
   async login(@Body() request: LoginDto): Promise<AuthResult> {
     try {
       return await this.loginUserUseCase.execute(request);
