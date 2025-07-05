@@ -15,4 +15,5 @@ export interface LoginData {
 export abstract class AuthProviderPort {
     abstract createUser(data: CreateUserData): Promise<User>;
     abstract authenticateUser(data: LoginData): Promise<AuthResult>;
+    abstract getUserBySub(userSub: string): Promise<User | null>;
 }
