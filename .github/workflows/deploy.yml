@@ -23,31 +23,11 @@ jobs:
       - name: Instala dependências
         run: npm install --legacy-peer-deps
 
-      - name: Instala jq para processamento JSON
-        run: sudo apt-get update && sudo apt-get install -y jq
-
       - name: Executa testes com coverage
         run: npm run test:cov
 
       - name: Executa linting
         run: npm run lint
-
-      - name: Exibe resultados dos testes
-        run: |
-          echo "=== RESUMO DOS TESTES ==="
-          npm test -- --silent=false --verbose
-          echo ""
-          echo "=== COVERAGE SUMMARY ==="
-          if [ -f "coverage/coverage-summary.json" ]; then
-            cat coverage/coverage-summary.json | jq '.total'
-          elif [ -f "coverage/lcov.info" ]; then
-            echo "Coverage report gerado (lcov.info)"
-            echo "Arquivos cobertos:"
-            find coverage/lcov-report -name "*.html" -type f | head -10
-          else
-            echo "Coverage report não encontrado"
-          fi
-
 
 
   deploy:
