@@ -1,26 +1,24 @@
-# Cognito Auth API
+# FIAP Hackathon - Auth Service
 
-API robusta para autenticação usando AWS Cognito com **Clean Architecture** e **Arquitetura Hexagonal**.
+API de autenticação serverless usando AWS Lambda, NestJS e AWS Cognito com **Clean Architecture** e **Arquitetura Hexagonal**.
 
 ## 🏗️ Arquitetura
-
-Este projeto segue rigorosamente os princípios da **Clean Architecture** e **Arquitetura Hexagonal**, organizando o código em camadas bem definidas:
 
 ```
 src/
 ├── domain/                 # Camada de Domínio (Regras de Negócio)
 │   ├── entities/          # Entidades de negócio
 │   └── ports/             # Contratos/Interfaces
+│       ├── controllers/   # Interfaces dos controllers
 │       └── gateways/      # Interfaces para recursos externos
 ├── application/           # Camada de Aplicação (Casos de Uso)
-│   ├── ports/            # Interfaces dos controllers
 │   └── usecases/         # Implementação dos casos de uso
 └── infrastructure/       # Camada de Infraestrutura (Detalhes)
     ├── adapters/         # Implementações dos contratos
-    │   ├── controllers/  # Controllers REST
+    │   ├── controllers/  # Controllers REST + DTOs
     │   └── gateways/     # Integrações externas (Cognito)
     ├── config/           # Configurações
-    ├── http/            # Ponto de entrada HTTP
+    ├── http/            # Ponto de entrada HTTP (Lambda handler)
     └── modules/         # Módulos do NestJS
 ```
 
@@ -32,22 +30,10 @@ src/
 - **Interface Segregation**: Interfaces específicas para cada necessidade
 - **Separation of Concerns**: Separação clara entre domínio, aplicação e infraestrutura
 
-## 🚀 Funcionalidades
+## 🚀 Tecnologias
 
-### ✅ Criação de Usuário
-- Criação direta com senha definitiva
-- Email marcado como verificado automaticamente
-- Uso de métodos admin do Cognito (`adminCreateUser`, `adminSetUserPassword`)
-- Validação robusta de entrada
-
-### ✅ Login de Usuário
-- Autenticação via usuário/senha
-- Retorno de tokens JWT (access, refresh, id)
-- Tratamento completo de erros
-- Rate limiting automático do Cognito
-
-## 🛠️ Tecnologias
-
+- **AWS Lambda** - Computação serverless
+- **Serverless Framework** - Deploy e gerenciamento de infraestrutura
 - **NestJS** - Framework Node.js com TypeScript
 - **AWS Cognito** - Serviço de autenticação da AWS
 - **AWS SDK v3** - Cliente oficial da AWS
@@ -58,6 +44,8 @@ src/
 ## 📋 Pré-requisitos
 
 - Node.js 18+
+- AWS CLI configurado
+- Serverless Framework instalado globalmente
 - Conta AWS com Cognito configurado
 - User Pool e App Client criados no Cognito
 
@@ -67,11 +55,9 @@ src/
 ```bash
 # Clone o repositório
 git clone <repo-url>
-cd cognito-auth-api
+cd fiap-hack/auth
 
 # Instale as dependências
-make install
-# ou
 npm install
 ```
 
@@ -83,10 +69,6 @@ cp .env.example .env
 
 Configure as variáveis no arquivo `.env`:
 ```env
-# Server
-PORT=3000
-NODE_ENV=development
-
 # AWS Cognito
 AWS_REGION=us-east-1
 COGNITO_USER_POOL_ID=us-east-1_XXXXXXXXX
@@ -114,43 +96,66 @@ No AWS Console, configure seu User Pool com:
 
 ## 🚦 Executando
 
-### Desenvolvimento
+### Desenvolvimento Local
 ```bash
-make dev
-# ou
+# Desenvolvimento com hot reload
 npm run start:dev
-```
 
-### Produção
-```bash
-make build
-make start
-# ou
+# Debug mode
+npm run start:debug
+
+# Build para produção
 npm run build
-npm run start:prod
 ```
 
-### Docker
+### Deploy Serverless
+
 ```bash
-make docker-build
-make docker-run
-# ou
-docker build -t cognito-auth-api .
-docker run -p 3000:3000 --env-file .env cognito-auth-api
+# Deploy para desenvolvimento
+serverless deploy --stage dev
+
+# Deploy para produção
+serverless deploy --stage prod
+
+# Deploy apenas de uma função específica
+serverless deploy function --function api
+
+# Remover deploy
+serverless remove --stage dev
+```
+
+### Comandos Úteis
+
+```bash
+# Testes
+npm run test
+npm run test:watch
+npm run test:cov
+
+# Linting
+npm run lint
+
+# Build
+npm run build
+
+# Formatação
+npm run format
 ```
 
 ## 📚 Documentação da API
 
-Após iniciar o servidor, acesse:
+### Swagger UI
+Após o deploy, acesse a documentação interativa:
 
-- **Swagger UI**: http://localhost:3000/api/docs
-- **OpenAPI JSON**: http://localhost:3000/api/docs-json
+- **Desenvolvimento**: https://[api-gateway-url]/dev/api/docs
+- **Produção**: https://[api-gateway-url]/prod/api/docs
 
-## 🧪 Endpoints
+### Endpoints Disponíveis
 
-### POST /api/v1/auth/register
-Cria um novo usuário.
+#### POST /api/v1/auth/register
+Cria um novo usuário no Cognito.
 
+**Request Body:**
 ```json
 {
   "email": "user@example.com",
@@ -159,7 +164,7 @@ Cria um novo usuário.
 }
 ```
 
-**Resposta (201)**:
+**Response (201):**
 ```json
 {
   "id": "uuid-4",
@@ -170,9 +175,15 @@ Cria um novo usuário.
 }
 ```
 
-### POST /api/v1/auth/login
-Autentica um usuário.
+**Validações:**
+- Email deve ter formato válido
+- Senha deve ter pelo menos 8 caracteres
+- Nome deve ter pelo menos 2 caracteres
 
+#### POST /api/v1/auth/login
+Autentica um usuário e retorna tokens JWT.
+
+**Request Body:**
 ```json
 {
   "email": "user@example.com",
@@ -180,7 +191,7 @@ Autentica um usuário.
 }
 ```
 
-**Resposta (200)**:
+**Response (200):**
 ```json
 {
   "accessToken": "eyJhbGciOiJSUzI1NiIs...",
@@ -191,31 +202,29 @@ Autentica um usuário.
 }
 ```
 
-## 🔧 Comandos Úteis
+## 🔧 Configuração Serverless
 
-```bash
-# Configuração inicial
-make setup
+O arquivo `serverless.yml` define:
 
-# Desenvolvimento
-make dev
+- **Runtime**: Node.js 18.x
+- **Region**: us-east-1
+- **IAM Permissions**: Permissões específicas para Cognito
+- **API Gateway**: Proxy para todas as rotas
+- **Handler**: `dist/src/infrastructure/http/main.handler`
 
-# Testes
-make test
-make test-coverage
+### Estrutura do Deploy
 
-# Linting
-make lint
-make lint-fix
-
-# Build
-make build
-
-# Verificações (lint + test)
-make check
-
-# Limpeza
-make clean
+```
+AWS Lambda Function
+├── Handler: main.handler
+├── Runtime: nodejs18.x
+├── Memory: 1024MB (padrão)
+├── Timeout: 30s (padrão)
+└── Environment Variables
+    ├── AWS_REGION
+    ├── COGNITO_USER_POOL_ID
+    ├── COGNITO_CLIENT_ID
+    └── COGNITO_CLIENT_SECRET
 ```
 
 ## 🚨 Tratamento de Erros
@@ -230,7 +239,7 @@ A API trata todos os cenários de erro com respostas estruturadas:
 | 429 | Muitas tentativas |
 | 500 | Erro interno |
 
-**Formato de erro**:
+**Formato de erro:**
 ```json
 {
   "statusCode": 400,
@@ -240,23 +249,23 @@ A API trata todos os cenários de erro com respostas estruturadas:
 }
 ```
 
-## 🏭 Estrutura de Produção
+## 🏭 Monitoramento e Observabilidade
 
-### Healthcheck
+### CloudWatch Logs
+- Logs estruturados automaticamente
+- Correlation IDs para rastreamento
+- Métricas de performance integradas
+
+### Health Check
 ```bash
-curl http://localhost:3000/api/v1/health
+curl https://[api-gateway-url]/dev/api/v1/health
 ```
 
-### Logging
-- Logs estruturados para produção
-- Correlation IDs para rastreamento
-- Métricas de performance
-
-### Segurança
-- Validação rigorosa de entrada
-- Rate limiting do Cognito
-- Headers de segurança configurados
-- CORS configurado
+### Métricas Disponíveis
+- Invocações da função
+- Duração das execuções
+- Taxa de erro
+- Throttles
 
 ## 🧪 Testes
 
@@ -274,12 +283,56 @@ npm run test:cov
 npm run test:e2e
 ```
 
-## 📈 Monitoramento
+### Estrutura de Testes
+```
+src/
+├── application/usecases/__tests__/
+├── domain/entities/__tests__/
+├── infrastructure/adapters/__tests__/
+└── test/
+    └── setup.ts
+```
 
-- **Swagger UI** para documentação interativa
-- **Health checks** para monitoramento de saúde
-- **Logs estruturados** para observabilidade
-- **Métricas** de performance integradas
+## 🔄 Git Flow
+
+O projeto segue o padrão Git Flow:
+
+```
+main (produção)
+├── develop (desenvolvimento)
+├── feature/auth-register
+├── feature/auth-login
+├── hotfix/critical-fix
+└── release/v1.0.0
+```
+
+### Branches Principais
+- **main**: Código em produção
+- **develop**: Código em desenvolvimento
+- **feature/***: Novas funcionalidades
+- **hotfix/***: Correções críticas
+- **release/***: Preparação para release
+
+### Workflow de Desenvolvimento
+1. Criar branch feature a partir de `develop`
+2. Desenvolver e testar
+3. Criar Pull Request para `develop`
+4. Code review e merge
+5. Criar Pull Request de `develop` para `main` (release)
+
+## 📈 CI/CD
+
+### Pipeline Sugerido
+1. **Build**: Compilação TypeScript
+2. **Test**: Execução de testes unitários
+3. **Lint**: Verificação de código
+4. **Deploy Dev**: Deploy automático para ambiente de desenvolvimento
+5. **Deploy Prod**: Deploy manual para produção
+
+### Variáveis de Ambiente por Stage
+- **dev**: Configurações de desenvolvimento
+- **prod**: Configurações de produção
+- **test**: Configurações para testes
 
 ## 🤝 Contribuição
 
@@ -289,6 +342,23 @@ npm run test:e2e
 4. Push para a branch (`git push origin feature/AmazingFeature`)
 5. Abra um Pull Request
 
+### Padrões de Commit
+- `feat`: Nova funcionalidade
+- `fix`: Correção de bug
+- `docs`: Documentação
+- `style`: Formatação de código
+- `refactor`: Refatoração
+- `test`: Testes
+- `chore`: Tarefas de build/configuração
+
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 🔗 Links Úteis
+
+- [NestJS Documentation](https://docs.nestjs.com/)
+- [Serverless Framework](https://www.serverless.com/)
+- [AWS Lambda](https://aws.amazon.com/lambda/)
+- [AWS Cognito](https://aws.amazon.com/cognito/)
+- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
