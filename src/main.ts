@@ -14,4 +14,4 @@ async function bootstrap() {
   console.log(`Auth service running on port ${port}`);
 }
 
-bootstrap(); 
+void bootstrap(); 

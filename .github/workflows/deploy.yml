@@ -1,0 +1,63 @@
+name: Deploy Serverless AWS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checar repositório
+        uses: actions/checkout@v2
+
+      - name: Configura Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Instala dependências
+        run: npm install --legacy-peer-deps
+
+      - name: Executa testes
+        run: npm test
+
+      - name: Executa linting
+        run: npm run lint
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checar repositório
+        uses: actions/checkout@v2
+
+      - name: Configura Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Instala dependências
+        run: npm install --legacy-peer-deps
+
+      - name: Instala NestJS CLI globalmente
+        run: npm install -g @nestjs/cli
+
+      - name: Constrói o projeto com NestJS
+        run: nest build
+
+      - name: Configura AWS CLI
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy com Serverless Framework
+        run: npx serverless deploy
