@@ -2,6 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from '../modules/app.modules';
+import * as serverless from 'serverless-http';
+
+let cachedServer: serverless.Handler;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -62,14 +65,12 @@ async function bootstrap() {
     customSiteTitle: 'Cognito Auth API Docs',
   });
 
-  const port = process.env.PORT!;
-  await app.listen(port);
-
-  console.log(`🚀 Aplicação rodando em: http://localhost:${port}`);
-  console.log(`📚 Documentação Swagger: http://localhost:${port}/api/docs`);
+  await app.init();
+  cachedServer = serverless(app.getHttpAdapter().getInstance());
+  return cachedServer;
 }
 
-bootstrap().catch((error) => {
-  console.error('❌ Erro ao inicializar aplicação:', error);
-  process.exit(1);
-});
+export const handler = async (event: any, context: any) => {
+  const server = await bootstrap();
+  return server(event, context);
+};

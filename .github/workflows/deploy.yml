@@ -50,6 +50,9 @@ jobs:
       - name: Instala NestJS CLI globalmente
         run: npm install -g @nestjs/cli
 
+      - name: Instala Serverless Framework
+        run: npm install -g serverless@3.35.2
+
       - name: Constrói o projeto com NestJS
         run: nest build
 
@@ -61,4 +64,4 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy com Serverless Framework
-        run: npx serverless deploy
+        run: serverless deploy
