@@ -1,12 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { AuthProviderPort } from '../../domain/ports/gateways/auth-provider.port';
 
-export interface GetUserEmailResponse {
-  success: boolean;
-  email?: string;
-  message?: string;
-}
-
 @Injectable()
 export class GetUserEmailUseCase {
   constructor(
@@ -14,34 +8,33 @@ export class GetUserEmailUseCase {
     private readonly authProvider: AuthProviderPort,
   ) {}
 
-  async execute(userSub: string): Promise<GetUserEmailResponse> {
+  async execute(userSub: string): Promise<string> {
     if (!userSub) {
-      return {
-        success: false,
-        message: 'ID do usuário é obrigatório',
-      };
+      throw new Error('Sub é obrigatório');
     }
 
     try {
       const user = await this.authProvider.getUserBySub(userSub);
       
       if (!user) {
-        return {
-          success: false,
-          message: 'Usuário não encontrado',
-        };
+        throw new Error('Usuário não encontrado');
       }
 
-      return {
-        success: true,
-        email: user.email,
-      };
-    } catch (error) {
-      console.error('Erro ao buscar e-mail do usuário:', error.message);
-      return {
-        success: false,
-        message: 'Erro interno ao buscar e-mail do usuário',
-      };
+      return user.email;
+    } catch (error: any) {
+      if (error.message === 'Usuário não encontrado') {
+        throw error;
+      }
+
+      if (error.name === 'ResourceNotFoundException') {
+        throw new Error('Usuário não encontrado');
+      }
+
+      if (error.name === 'TooManyRequestsException') {
+        throw new Error('Muitas tentativas. Tente novamente mais tarde');
+      }
+
+      throw new Error('Erro do Cognito: Erro desconhecido do Cognito');
     }
   }
 } 

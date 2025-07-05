@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { GetUserEmailUseCase } from '../../../application/usecases/get-user-email.usecase';
 
 @Controller('users')
@@ -7,18 +7,29 @@ export class UserController {
 
   @Get(':userSub/email')
   async getUserEmail(@Param('userSub') userSub: string) {
-    const result = await this.getUserEmailUseCase.execute(userSub);
-    
-    if (!result.success) {
+    try {
+      const email = await this.getUserEmailUseCase.execute(userSub);
+      
       return {
-        success: false,
-        message: result.message,
+        success: true,
+        email: email,
       };
+    } catch (error) {
+      const message = error.message || 'Erro interno do servidor';
+      
+      if (message.includes('Sub é obrigatório')) {
+        throw new HttpException(message, HttpStatus.BAD_REQUEST);
+      }
+      
+      if (message.includes('Usuário não encontrado')) {
+        throw new HttpException(message, HttpStatus.NOT_FOUND);
+      }
+      
+      if (message.includes('Muitas tentativas')) {
+        throw new HttpException(message, HttpStatus.TOO_MANY_REQUESTS);
+      }
+      
+      throw new HttpException(message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    return {
-      success: true,
-      email: result.email,
-    };
   }
 } 
