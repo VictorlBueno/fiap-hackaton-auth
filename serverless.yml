@@ -27,7 +27,7 @@ provider:
 
 functions:
   api:
-    handler: dist/src/main.handler
+    handler: dist/src/infrastructure/http/main.handler
     events:
       - http:
           path: /{proxy+}

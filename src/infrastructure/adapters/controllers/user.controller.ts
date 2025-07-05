@@ -1,4 +1,4 @@
-import { Controller, Get, Param, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { GetUserEmailUseCase } from '../../../application/usecases/get-user-email.usecase';
 
 @Controller('users')

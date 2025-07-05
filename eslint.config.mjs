@@ -8,7 +8,6 @@ export default tseslint.config(
     ignores: ['eslint.config.mjs'],
   },
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
   {
     languageOptions: {
       globals: {

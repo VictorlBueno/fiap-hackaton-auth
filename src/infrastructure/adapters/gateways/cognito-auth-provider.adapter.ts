@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import {
   AdminCreateUserCommand,
   AdminCreateUserResponse,
+  AdminGetUserCommand,
+  AdminGetUserResponse,
   AdminInitiateAuthCommand,
   AdminInitiateAuthResponse,
   AdminSetUserPasswordCommand,
@@ -127,7 +129,7 @@ export class CognitoAuthProviderAdapter implements AuthProviderPort {
       // Busca pelo atributo sub
       const listUsersCommand = new ListUsersCommand({
         UserPoolId: this.config.userPoolId,
-        Filter: `sub = "${userSub}"`,
+        Filter: `sub = \"${userSub}\"`,
         Limit: 1
       });
       const response = await this.client.send(listUsersCommand) as ListUsersResponse;
