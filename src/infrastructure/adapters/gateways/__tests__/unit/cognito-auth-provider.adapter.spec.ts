@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CognitoAuthProviderAdapter } from 'src/infrastructure/adapters/gateways/cognito-auth-provider.adapter';
-import { CognitoIdentityProviderClient, AdminCreateUserCommand, InitiateAuthCommand, ListUsersCommand } from '@aws-sdk/client-cognito-identity-provider';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { User } from 'src/domain/entities/user.entity';
 import { AuthResult } from 'src/domain/entities/auth-result.entity';
 import { AuthProviderPort } from 'src/domain/ports/gateways/auth-provider.port';
@@ -452,7 +452,7 @@ describe('CognitoAuthProviderAdapter', () => {
         clientSecret: 'test-client-secret',
       };
       adapter = new CognitoAuthProviderAdapter(mockCognitoConfig);
-      // @ts-ignore
+      // @ts-expect-error - Mocking private property for testing
       adapter.client = mockCognitoClient;
     });
 
