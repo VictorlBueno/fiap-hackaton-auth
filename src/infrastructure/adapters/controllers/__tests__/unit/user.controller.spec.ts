@@ -31,7 +31,7 @@ describe('UserController', () => {
   });
 
   describe('getUserEmail', () => {
-    it('deve retornar o email do usuário com sucesso', async () => {
+    it('should return user email successfully', async () => {
       const userSub = 'user-sub-123';
       const expectedEmail = 'john@example.com';
 
@@ -46,9 +46,9 @@ describe('UserController', () => {
       });
     });
 
-    it('deve lançar HttpException com status 400 quando sub é obrigatório', async () => {
+    it('should throw HttpException with status 400 when sub is required', async () => {
       const userSub = 'user-sub-123';
-      const errorMessage = 'Sub é obrigatório';
+      const errorMessage = 'Sub is required';
 
       getUserEmailUseCase.execute.mockRejectedValue(new Error(errorMessage));
 
@@ -59,9 +59,9 @@ describe('UserController', () => {
       expect(getUserEmailUseCase.execute).toHaveBeenCalledWith(userSub);
     });
 
-    it('deve lançar HttpException com status 404 quando usuário não encontrado', async () => {
+    it('should throw HttpException with status 404 when user not found', async () => {
       const userSub = 'user-sub-123';
-      const errorMessage = 'Usuário não encontrado';
+      const errorMessage = 'User not found';
 
       getUserEmailUseCase.execute.mockRejectedValue(new Error(errorMessage));
 
@@ -72,9 +72,9 @@ describe('UserController', () => {
       expect(getUserEmailUseCase.execute).toHaveBeenCalledWith(userSub);
     });
 
-    it('deve lançar HttpException com status 429 quando muitas tentativas', async () => {
+    it('should throw HttpException with status 429 when too many requests', async () => {
       const userSub = 'user-sub-123';
-      const errorMessage = 'Muitas tentativas';
+      const errorMessage = 'Too many requests';
 
       getUserEmailUseCase.execute.mockRejectedValue(new Error(errorMessage));
 
@@ -85,9 +85,9 @@ describe('UserController', () => {
       expect(getUserEmailUseCase.execute).toHaveBeenCalledWith(userSub);
     });
 
-    it('deve lançar HttpException com status 500 para erro interno', async () => {
+    it('should throw HttpException with status 500 for internal error', async () => {
       const userSub = 'user-sub-123';
-      const errorMessage = 'Erro interno do servidor';
+      const errorMessage = 'Internal server error';
 
       getUserEmailUseCase.execute.mockRejectedValue(new Error(errorMessage));
 
@@ -98,13 +98,26 @@ describe('UserController', () => {
       expect(getUserEmailUseCase.execute).toHaveBeenCalledWith(userSub);
     });
 
-    it('deve lançar HttpException com status 500 quando erro não tem message', async () => {
+    it('should throw HttpException with status 500 when error has no message', async () => {
       const userSub = 'user-sub-123';
 
       getUserEmailUseCase.execute.mockRejectedValue(new Error());
 
       await expect(controller.getUserEmail(userSub)).rejects.toThrow(
         new HttpException('Erro interno do servidor', HttpStatus.INTERNAL_SERVER_ERROR)
+      );
+
+      expect(getUserEmailUseCase.execute).toHaveBeenCalledWith(userSub);
+    });
+
+    it('should throw HttpException with status 500 for generic error', async () => {
+      const userSub = 'user-sub-123';
+      const errorMessage = 'Generic error message';
+
+      getUserEmailUseCase.execute.mockRejectedValue(new Error(errorMessage));
+
+      await expect(controller.getUserEmail(userSub)).rejects.toThrow(
+        new HttpException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR)
       );
 
       expect(getUserEmailUseCase.execute).toHaveBeenCalledWith(userSub);

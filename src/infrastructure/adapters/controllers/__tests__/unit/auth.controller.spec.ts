@@ -104,13 +104,38 @@ describe('AuthController', () => {
       });
 
       describe('And user creation fails', () => {
-        beforeEach(() => {
+        it('Then should throw conflict error for user already exists', async () => {
           mockCreateUserUseCase.execute.mockRejectedValue(new Error('Usuário já existe'));
-        });
-
-        it('Then should throw error', async () => {
           await expect(controller.createUser(mockCreateUserDto)).rejects.toThrow(
             'Usuário já existe',
+          );
+        });
+
+        it('Then should throw bad request error for invalid data', async () => {
+          mockCreateUserUseCase.execute.mockRejectedValue(new Error('Senha não atende aos critérios'));
+          await expect(controller.createUser(mockCreateUserDto)).rejects.toThrow(
+            'Senha não atende aos critérios',
+          );
+        });
+
+        it('Then should throw bad request error for missing required field', async () => {
+          mockCreateUserUseCase.execute.mockRejectedValue(new Error('Email é obrigatório'));
+          await expect(controller.createUser(mockCreateUserDto)).rejects.toThrow(
+            'Email é obrigatório',
+          );
+        });
+
+        it('Then should throw internal server error for unknown error', async () => {
+          mockCreateUserUseCase.execute.mockRejectedValue(new Error('Erro desconhecido'));
+          await expect(controller.createUser(mockCreateUserDto)).rejects.toThrow(
+            'Erro desconhecido',
+          );
+        });
+
+        it('Then should throw internal server error when error has no message', async () => {
+          mockCreateUserUseCase.execute.mockRejectedValue(new Error());
+          await expect(controller.createUser(mockCreateUserDto)).rejects.toThrow(
+            'Erro interno do servidor',
           );
         });
       });
@@ -148,12 +173,29 @@ describe('AuthController', () => {
       });
 
       describe('And login fails', () => {
-        beforeEach(() => {
+        it('Then should throw unauthorized error for invalid credentials', async () => {
           mockLoginUserUseCase.execute.mockRejectedValue(new Error('Credenciais inválidas'));
+          await expect(controller.login(mockLoginDto)).rejects.toThrow('Credenciais inválidas');
         });
 
-        it('Then should throw error', async () => {
-          await expect(controller.login(mockLoginDto)).rejects.toThrow('Credenciais inválidas');
+        it('Then should throw unauthorized error for user not found', async () => {
+          mockLoginUserUseCase.execute.mockRejectedValue(new Error('Usuário não encontrado'));
+          await expect(controller.login(mockLoginDto)).rejects.toThrow('Usuário não encontrado');
+        });
+
+        it('Then should throw too many requests error', async () => {
+          mockLoginUserUseCase.execute.mockRejectedValue(new Error('Muitas tentativas'));
+          await expect(controller.login(mockLoginDto)).rejects.toThrow('Muitas tentativas');
+        });
+
+        it('Then should throw bad request error for invalid email', async () => {
+          mockLoginUserUseCase.execute.mockRejectedValue(new Error('Email inválido'));
+          await expect(controller.login(mockLoginDto)).rejects.toThrow('Email inválido');
+        });
+
+        it('Then should throw internal server error for unknown error', async () => {
+          mockLoginUserUseCase.execute.mockRejectedValue(new Error('Erro desconhecido'));
+          await expect(controller.login(mockLoginDto)).rejects.toThrow('Erro desconhecido');
         });
       });
     });

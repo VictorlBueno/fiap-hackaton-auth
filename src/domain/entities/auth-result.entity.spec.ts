@@ -1,9 +1,9 @@
 import { AuthResult } from './auth-result.entity';
 
 describe('AuthResult Entity', () => {
-  describe('Given o método create', () => {
-    describe('When tokenType é fornecido', () => {
-      it('Then deve criar um AuthResult com o tokenType informado', () => {
+  describe('Given the create method', () => {
+    describe('When tokenType is provided', () => {
+      it('Then should create an AuthResult with the provided tokenType', () => {
         const result = AuthResult.create({
           accessToken: 'tokenA',
           refreshToken: 'tokenR',
@@ -15,8 +15,8 @@ describe('AuthResult Entity', () => {
       });
     });
 
-    describe('When tokenType não é fornecido', () => {
-      it('Then deve criar um AuthResult com tokenType padrão "Bearer"', () => {
+    describe('When tokenType is not provided', () => {
+      it('Then should create an AuthResult with default tokenType "Bearer"', () => {
         const result = AuthResult.create({
           accessToken: 'tokenA',
           refreshToken: 'tokenR',

@@ -8,7 +8,7 @@ import { LoginUserUseCase } from '../../../application/usecases/login-user.useca
 import { AuthProviderPort } from '../../../domain/ports/gateways/auth-provider.port';
 
 describe('AppModule', () => {
-  it('deve compilar o módulo e registrar controllers e providers', async () => {
+  it('should compile the module and register controllers and providers', async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();

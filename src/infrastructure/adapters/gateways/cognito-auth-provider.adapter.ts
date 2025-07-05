@@ -122,8 +122,6 @@ export class CognitoAuthProviderAdapter implements AuthProviderPort {
 
   async getUserBySub(userSub: string): Promise<User | null> {
     try {
-      console.log(`[DEBUG] Buscando usuário no Cognito por sub - UserSub: ${userSub}, UserPoolId: ${this.config.userPoolId}`);
-      
       // Busca pelo atributo sub
       const listUsersCommand = new ListUsersCommand({
         UserPoolId: this.config.userPoolId,
@@ -131,10 +129,8 @@ export class CognitoAuthProviderAdapter implements AuthProviderPort {
         Limit: 1
       });
       const response = await this.client.send(listUsersCommand) as ListUsersResponse;
-      console.log(`[DEBUG] Resposta do Cognito (ListUsers):`, JSON.stringify(response, null, 2));
       
       if (!response.Users || response.Users.length === 0) {
-        console.log(`[DEBUG] Usuário não encontrado na resposta`);
         return null;
       }
       const userData = response.Users[0];
@@ -142,7 +138,7 @@ export class CognitoAuthProviderAdapter implements AuthProviderPort {
       const name = userData.Attributes?.find((attr: any) => attr.Name === 'name')?.Value;
       const emailVerified = userData.Attributes?.find((attr: any) => attr.Name === 'email_verified')?.Value === 'true';
       const sub = userData.Attributes?.find((attr: any) => attr.Name === 'sub')?.Value;
-      console.log(`[DEBUG] Atributos extraídos - Email: ${email}, Name: ${name}, EmailVerified: ${emailVerified}, Sub: ${sub}`);
+      
       return User.create({
         id: sub || userSub,
         email: email || '',
@@ -151,7 +147,6 @@ export class CognitoAuthProviderAdapter implements AuthProviderPort {
         isEmailVerified: emailVerified,
       });
     } catch (error: any) {
-      console.log(`[DEBUG] Erro ao buscar usuário:`, error.name, error.message);
       if (error.name === 'UserNotFoundException') {
         return null;
       }
