@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import {
   AdminCreateUserCommand,
   AdminCreateUserResponse,
+  AdminGetUserCommand,
+  AdminGetUserResponse,
   AdminInitiateAuthCommand,
   AdminInitiateAuthResponse,
   AdminSetUserPasswordCommand,
@@ -9,6 +11,8 @@ import {
   AuthFlowType,
   CognitoIdentityProviderClient,
   MessageActionType,
+  ListUsersCommand,
+  ListUsersResponse,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { createHmac } from 'crypto';
 
@@ -113,6 +117,46 @@ export class CognitoAuthProviderAdapter implements AuthProviderPort {
         tokenType: AuthenticationResult.TokenType || 'Bearer',
       });
     } catch (error) {
+      this.handleCognitoError(error);
+      throw error;
+    }
+  }
+
+  async getUserBySub(userSub: string): Promise<User | null> {
+    try {
+      console.log(`[DEBUG] Buscando usuário no Cognito por sub - UserSub: ${userSub}, UserPoolId: ${this.config.userPoolId}`);
+      
+      // Busca pelo atributo sub
+      const listUsersCommand = new ListUsersCommand({
+        UserPoolId: this.config.userPoolId,
+        Filter: `sub = \"${userSub}\"`,
+        Limit: 1
+      });
+      const response = await this.client.send(listUsersCommand) as ListUsersResponse;
+      console.log(`[DEBUG] Resposta do Cognito (ListUsers):`, JSON.stringify(response, null, 2));
+      
+      if (!response.Users || response.Users.length === 0) {
+        console.log(`[DEBUG] Usuário não encontrado na resposta`);
+        return null;
+      }
+      const userData = response.Users[0];
+      const email = userData.Attributes?.find((attr: any) => attr.Name === 'email')?.Value;
+      const name = userData.Attributes?.find((attr: any) => attr.Name === 'name')?.Value;
+      const emailVerified = userData.Attributes?.find((attr: any) => attr.Name === 'email_verified')?.Value === 'true';
+      const sub = userData.Attributes?.find((attr: any) => attr.Name === 'sub')?.Value;
+      console.log(`[DEBUG] Atributos extraídos - Email: ${email}, Name: ${name}, EmailVerified: ${emailVerified}, Sub: ${sub}`);
+      return User.create({
+        id: sub || userSub,
+        email: email || '',
+        name: name || '',
+        createdAt: userData.UserCreateDate || new Date(),
+        isEmailVerified: emailVerified,
+      });
+    } catch (error: any) {
+      console.log(`[DEBUG] Erro ao buscar usuário:`, error.name, error.message);
+      if (error.name === 'UserNotFoundException') {
+        return null;
+      }
       this.handleCognitoError(error);
       throw error;
     }
