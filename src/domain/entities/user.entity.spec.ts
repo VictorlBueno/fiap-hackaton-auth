@@ -1,27 +1,27 @@
 import { User } from './user.entity';
 
 describe('User Entity', () => {
-  describe('Given o método create', () => {
-    describe('When createdAt é fornecido', () => {
-      it('Then deve criar o usuário com a data informada', () => {
+  describe('Given the create method', () => {
+    describe('When createdAt is provided', () => {
+      it('Then should create user with the provided date', () => {
         const date = new Date('2023-01-01T00:00:00Z');
         const user = User.create({
           id: '1',
           email: 'a@b.com',
-          name: 'Nome',
+          name: 'Name',
           createdAt: date,
         });
         expect(user.createdAt).toBe(date);
       });
     });
 
-    describe('When createdAt não é fornecido', () => {
-      it('Then deve criar o usuário com a data atual', () => {
+    describe('When createdAt is not provided', () => {
+      it('Then should create user with current date', () => {
         const before = new Date();
         const user = User.create({
           id: '1',
           email: 'a@b.com',
-          name: 'Nome',
+          name: 'Name',
         });
         const after = new Date();
         expect(user.createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
@@ -29,36 +29,36 @@ describe('User Entity', () => {
       });
     });
 
-    describe('When isEmailVerified é true', () => {
-      it('Then deve criar o usuário com isEmailVerified true', () => {
+    describe('When isEmailVerified is true', () => {
+      it('Then should create user with isEmailVerified true', () => {
         const user = User.create({
           id: '1',
           email: 'a@b.com',
-          name: 'Nome',
+          name: 'Name',
           isEmailVerified: true,
         });
         expect(user.isEmailVerified).toBe(true);
       });
     });
 
-    describe('When isEmailVerified é false', () => {
-      it('Then deve criar o usuário com isEmailVerified false', () => {
+    describe('When isEmailVerified is false', () => {
+      it('Then should create user with isEmailVerified false', () => {
         const user = User.create({
           id: '1',
           email: 'a@b.com',
-          name: 'Nome',
+          name: 'Name',
           isEmailVerified: false,
         });
         expect(user.isEmailVerified).toBe(false);
       });
     });
 
-    describe('When isEmailVerified não é fornecido', () => {
-      it('Then deve criar o usuário com isEmailVerified true por padrão', () => {
+    describe('When isEmailVerified is not provided', () => {
+      it('Then should create user with isEmailVerified true by default', () => {
         const user = User.create({
           id: '1',
           email: 'a@b.com',
-          name: 'Nome',
+          name: 'Name',
         });
         expect(user.isEmailVerified).toBe(true);
       });

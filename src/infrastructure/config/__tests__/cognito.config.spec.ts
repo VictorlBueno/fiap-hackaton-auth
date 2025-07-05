@@ -12,7 +12,7 @@ describe('getCognitoConfig', () => {
     process.env = OLD_ENV;
   });
 
-  it('deve retornar valores default se variáveis não estiverem definidas', () => {
+  it('should return default values if environment variables are not defined', () => {
     delete process.env.AWS_REGION;
     delete process.env.COGNITO_USER_POOL_ID;
     delete process.env.COGNITO_CLIENT_ID;
@@ -24,7 +24,7 @@ describe('getCognitoConfig', () => {
     expect(config.clientSecret).toBeUndefined();
   });
 
-  it('deve retornar valores das variáveis de ambiente', () => {
+  it('should return values from environment variables', () => {
     process.env.AWS_REGION = 'sa-east-1';
     process.env.COGNITO_USER_POOL_ID = 'pool';
     process.env.COGNITO_CLIENT_ID = 'client';

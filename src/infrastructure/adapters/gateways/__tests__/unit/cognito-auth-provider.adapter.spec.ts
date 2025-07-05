@@ -435,10 +435,59 @@ describe('CognitoAuthProviderAdapter', () => {
           expect(result).toBeNull();
         });
       });
+
+      describe('And user attributes are missing', () => {
+        beforeEach(() => {
+          (mockCognitoClient.send as jest.Mock).mockResolvedValue({
+            Users: [
+              {
+                Username: 'john@example.com',
+                Attributes: [],
+                UserCreateDate: new Date(),
+              },
+            ],
+          });
+        });
+
+        it('Then should return user with fallback values', async () => {
+          const result = await adapter.getUserBySub(mockSub);
+          
+          expect(result!.id).toBe(mockSub);
+          expect(result!.email).toBe('');
+          expect(result!.name).toBe('');
+          expect(result!.isEmailVerified).toBe(false);
+        });
+      });
+
+      describe('And user has partial attributes', () => {
+        beforeEach(() => {
+          (mockCognitoClient.send as jest.Mock).mockResolvedValue({
+            Users: [
+              {
+                Username: 'john@example.com',
+                Attributes: [
+                  { Name: 'sub', Value: 'user-sub-123' },
+                  { Name: 'email', Value: 'john@example.com' },
+                ],
+                UserCreateDate: new Date(),
+              },
+            ],
+          });
+        });
+
+        it('Then should return user with available attributes and fallbacks', async () => {
+          const result = await adapter.getUserBySub(mockSub);
+          
+          expect(result!.id).toBe('user-sub-123');
+          expect(result!.email).toBe('john@example.com');
+          expect(result!.name).toBe('');
+          expect(result!.isEmailVerified).toBe(false);
+        });
+      });
     });
   });
 
-  describe('Cobertura extra de erros do CognitoAuthProviderAdapter', () => {
+  describe('Extra error coverage for CognitoAuthProviderAdapter', () => {
     let adapter: CognitoAuthProviderAdapter;
     let mockCognitoClient: any;
     let mockCognitoConfig: any;
@@ -456,35 +505,74 @@ describe('CognitoAuthProviderAdapter', () => {
       adapter.client = mockCognitoClient;
     });
 
-    it('deve lançar erro se falhar ao definir senha definitiva', async () => {
+    it('should throw error if setting permanent password fails', async () => {
       mockCognitoClient.send
         .mockResolvedValueOnce({ User: { Username: 'john@example.com', Attributes: [{ Name: 'sub', Value: 'user-sub-123' }], UserCreateDate: new Date() } })
-        .mockRejectedValueOnce(new Error('Falha ao definir senha'));
-      await expect(adapter.createUser({ name: 'John', email: 'john@example.com', password: '12345678' })).rejects.toThrow('Falha ao definir senha');
+        .mockRejectedValueOnce(new Error('Failed to set password'));
+      await expect(adapter.createUser({ name: 'John', email: 'john@example.com', password: '12345678' })).rejects.toThrow('Failed to set password');
     });
 
-    it('deve lançar erro se falhar ao atualizar atributos', async () => {
+    it('should throw error if updating attributes fails', async () => {
       mockCognitoClient.send
         .mockResolvedValueOnce({ User: { Username: 'john@example.com', Attributes: [{ Name: 'sub', Value: 'user-sub-123' }], UserCreateDate: new Date() } })
         .mockResolvedValueOnce({})
-        .mockRejectedValueOnce(new Error('Falha ao atualizar atributos'));
-      await expect(adapter.createUser({ name: 'John', email: 'john@example.com', password: '12345678' })).rejects.toThrow('Falha ao atualizar atributos');
+        .mockRejectedValueOnce(new Error('Failed to update attributes'));
+      await expect(adapter.createUser({ name: 'John', email: 'john@example.com', password: '12345678' })).rejects.toThrow('Failed to update attributes');
     });
 
-    it('deve lançar erro se não houver AuthenticationResult', async () => {
+    it('should throw error if there is no AuthenticationResult', async () => {
       mockCognitoClient.send.mockResolvedValue({});
       await expect(adapter.authenticateUser({ email: 'john@example.com', password: '12345678' })).rejects.toThrow('Falha na autenticação');
     });
 
-    it('deve lançar erro se getUserBySub der erro desconhecido', async () => {
-      mockCognitoClient.send.mockRejectedValue(new Error('Erro desconhecido qualquer'));
-      await expect(adapter.getUserBySub('sub')).rejects.toThrow('Erro do Cognito: Erro desconhecido qualquer');
+    it('should throw error if getUserBySub gets unknown error', async () => {
+      mockCognitoClient.send.mockRejectedValue(new Error('Unknown error'));
+      await expect(adapter.getUserBySub('sub')).rejects.toThrow('Erro do Cognito: Unknown error');
     });
 
-    it('deve lançar erro se calcular secret hash sem clientSecret', () => {
-      const configSemSecret = { ...mockCognitoConfig, clientSecret: undefined };
-      const adapterSemSecret = new CognitoAuthProviderAdapter(configSemSecret);
-      expect(() => (adapterSemSecret as any).calculateSecretHash('user')).toThrow('Client secret não configurado');
+    it('should throw error if calculating secret hash without clientSecret', () => {
+      const configWithoutSecret = { ...mockCognitoConfig, clientSecret: undefined };
+      const adapterWithoutSecret = new CognitoAuthProviderAdapter(configWithoutSecret);
+      expect(() => (adapterWithoutSecret as any).calculateSecretHash('user')).toThrow('Client secret não configurado');
+    });
+
+    it('should handle createUser with fallback values when User attributes are missing', async () => {
+      mockCognitoClient.send
+        .mockResolvedValueOnce({ 
+          User: { 
+            Username: 'john@example.com', 
+            UserCreateDate: new Date() 
+          } 
+        })
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({});
+
+      const result = await adapter.createUser({ 
+        name: 'John', 
+        email: 'john@example.com', 
+        password: '12345678' 
+      });
+
+      expect(result.id).toBe('john@example.com');
+      expect(result.email).toBe('john@example.com');
+      expect(result.name).toBe('John');
+    });
+
+    it('should handle createUser with fallback values when User is missing', async () => {
+      mockCognitoClient.send
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({});
+
+      const result = await adapter.createUser({ 
+        name: 'John', 
+        email: 'john@example.com', 
+        password: '12345678' 
+      });
+
+      expect(result.id).toBe('john@example.com');
+      expect(result.email).toBe('john@example.com');
+      expect(result.name).toBe('John');
     });
   });
 
