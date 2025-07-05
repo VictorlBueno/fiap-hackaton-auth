@@ -73,7 +73,7 @@ export class CognitoAuthProviderAdapter implements AuthProviderPort {
       await this.client.send(updateAttributesCommand);
 
       return User.create({
-        id: createUserResponse.User?.Username || data.email,
+        id: createUserResponse.User?.Attributes?.find(attr => attr.Name === 'sub')?.Value || createUserResponse.User?.Username || data.email,
         email: data.email,
         name: data.name,
         createdAt: createUserResponse.User?.UserCreateDate || new Date(),
@@ -185,6 +185,8 @@ export class CognitoAuthProviderAdapter implements AuthProviderPort {
         throw new Error('Senha não atende aos critérios de segurança');
       case 'NotAuthorizedException':
         throw new Error('Credenciais inválidas');
+      case 'UserNotConfirmedException':
+        throw new Error('Usuário não confirmado');
       case 'UserNotFoundException':
         throw new Error('Usuário não encontrado');
       case 'TooManyRequestsException':

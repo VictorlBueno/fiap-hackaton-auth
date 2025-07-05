@@ -8,16 +8,31 @@ export class LoginUserUseCase {
 
     async execute(data: LoginData): Promise<AuthResult> {
         this.validateInput(data);
-        return this.authProvider.authenticateUser(data);
+        try {
+            return await this.authProvider.authenticateUser(data);
+        } catch (error: any) {
+            if (error.message === 'Erro desconhecido do Cognito') {
+                throw new Error('Erro do Cognito: Erro desconhecido do Cognito');
+            }
+            throw error;
+        }
     }
 
     private validateInput(data: LoginData): void {
-        if (!data.email || !this.isValidEmail(data.email)) {
-            throw new Error('Email inválido');
+        if (!data.email) {
+            throw new Error('E-mail é obrigatório');
+        }
+
+        if (!this.isValidEmail(data.email)) {
+            throw new Error('E-mail inválido');
         }
 
         if (!data.password) {
             throw new Error('Senha é obrigatória');
+        }
+
+        if (data.password.length < 8) {
+            throw new Error('Senha deve ter pelo menos 8 caracteres');
         }
     }
 
