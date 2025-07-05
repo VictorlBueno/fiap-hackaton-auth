@@ -22,14 +22,6 @@ src/
     └── modules/         # Módulos do NestJS
 ```
 
-### 🎯 Princípios Aplicados
-
-- **Dependency Inversion**: Dependências apontam para abstrações, não implementações
-- **Single Responsibility**: Cada classe tem uma única responsabilidade
-- **Open/Closed**: Extensível para novos recursos sem modificar código existente
-- **Interface Segregation**: Interfaces específicas para cada necessidade
-- **Separation of Concerns**: Separação clara entre domínio, aplicação e infraestrutura
-
 ## 🚀 Tecnologias
 
 - **AWS Lambda** - Computação serverless
@@ -79,20 +71,6 @@ COGNITO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxx
 AWS_ACCESS_KEY_ID=AKIAXXXXXXXXXXXXXXXX
 AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
-
-### 3. Configuração do Cognito
-
-No AWS Console, configure seu User Pool com:
-
-1. **App Client Settings**:
-    - ✅ Enable SRP (Secure Remote Password) protocol based authentication
-    - ✅ Enable username-password auth for admin APIs
-
-2. **Policies**:
-    - Password minimum length: 8 characters
-    - Require uppercase, lowercase, numbers, special characters
-
-3. **MFA**: Desabilitado (conforme requisitos)
 
 ## 🚦 Executando
 
@@ -293,72 +271,11 @@ src/
     └── setup.ts
 ```
 
-## 🔄 Git Flow
-
-O projeto segue o padrão Git Flow:
-
-```
-main (produção)
-├── develop (desenvolvimento)
-├── feature/auth-register
-├── feature/auth-login
-├── hotfix/critical-fix
-└── release/v1.0.0
-```
-
-### Branches Principais
-- **main**: Código em produção
-- **develop**: Código em desenvolvimento
-- **feature/***: Novas funcionalidades
-- **hotfix/***: Correções críticas
-- **release/***: Preparação para release
-
-### Workflow de Desenvolvimento
-1. Criar branch feature a partir de `develop`
-2. Desenvolver e testar
-3. Criar Pull Request para `develop`
-4. Code review e merge
-5. Criar Pull Request de `develop` para `main` (release)
-
 ## 📈 CI/CD
 
-### Pipeline Sugerido
+### Pipeline
 1. **Build**: Compilação TypeScript
 2. **Test**: Execução de testes unitários
 3. **Lint**: Verificação de código
 4. **Deploy Dev**: Deploy automático para ambiente de desenvolvimento
 5. **Deploy Prod**: Deploy manual para produção
-
-### Variáveis de Ambiente por Stage
-- **dev**: Configurações de desenvolvimento
-- **prod**: Configurações de produção
-- **test**: Configurações para testes
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-### Padrões de Commit
-- `feat`: Nova funcionalidade
-- `fix`: Correção de bug
-- `docs`: Documentação
-- `style`: Formatação de código
-- `refactor`: Refatoração
-- `test`: Testes
-- `chore`: Tarefas de build/configuração
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## 🔗 Links Úteis
-
-- [NestJS Documentation](https://docs.nestjs.com/)
-- [Serverless Framework](https://www.serverless.com/)
-- [AWS Lambda](https://aws.amazon.com/lambda/)
-- [AWS Cognito](https://aws.amazon.com/cognito/)
-- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
