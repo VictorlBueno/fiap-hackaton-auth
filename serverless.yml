@@ -23,11 +23,15 @@ provider:
             - cognito-idp:AdminCreateUser
             - cognito-idp:AdminGetUser
             - cognito-idp:ListUsers
+            - cognito-idp:AdminInitiateAuth
+            - cognito-idp:AdminRespondToAuthChallenge
+            - cognito-idp:AdminConfirmSignUp
+            - cognito-idp:AdminDeleteUser
           Resource: "arn:aws:cognito-idp:us-east-1:410211328905:userpool/us-east-1_PQCMQ5HXn"
 
 functions:
   api:
-    handler: dist/src/infrastructure/http/main.handler
+    handler: dist/infrastructure/http/main.handler
     events:
       - http:
           path: /{proxy+}

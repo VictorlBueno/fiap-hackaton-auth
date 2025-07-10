@@ -9,7 +9,6 @@ let cachedServer: serverless.Handler;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -21,7 +20,6 @@ async function bootstrap() {
     }),
   );
 
-  // CORS configuration
   app.enableCors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -29,10 +27,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global prefix
   app.setGlobalPrefix('api/v1');
 
-  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Cognito Auth API')
     .setDescription(
