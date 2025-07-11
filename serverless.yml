@@ -36,3 +36,7 @@ functions:
       - http:
           path: /{proxy+}
           method: ANY
+
+build:
+  ignore:
+    - .env
